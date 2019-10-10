@@ -48,6 +48,7 @@ void setup() {
   Timer1.attachInterrupt(tick);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), doEncoder, RISING);
   // TODO: Store duration in flash memory and reinitialize from there.
+  // See Chapter 8 in "Programming Arduino" on how to do that.
   duration = DEFAULT_DURATION;
   timeRemaining = duration;
 }
