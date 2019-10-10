@@ -74,15 +74,13 @@ void doEncoder() {
 
   if (pinA == pinB) {
     duration++;
-    if (duration > 300) duration = 300;
     timeRemaining++;
-    if (timeRemaining > 300) timeRemaining = 300;
   } else {
     duration--;
-    if (duration < 1) duration = 0;
     timeRemaining--;
-    if (timeRemaining < 1) timeRemaining = 0;
   }
+  constrain(duration, 0, 300);
+  constrain(timeRemaining, 0, 300);
 }
 
 void updateDisplayDuration() {
