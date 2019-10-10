@@ -1,10 +1,16 @@
 /*
  * FlashTimer by Ross Bennett
- * This project creates a self-starting timer when a proximity sensor (IR emitter/receiver pair) is triggered.
- * When the specified durion has elapsed, the audible alarm happens until the proximity sensor reports no proximity.
- * When there is no proximity, the timer is reset to the indicated duration.
+ *
+ * This project creates a self-starting countdown timer when a 
+ * proximity sensor (IR emitter/receiver pair) is triggered.
+ * When the specified durion has elapsed, the audible alarm 
+ * happens until the proximity sensor reports no proximity.
+ * When there is no proximity, the timer is reset to the 
+ * indicated duration.
  * 
- * This was originally written to limit the time a screen printing press arm was left under a 1600 watt flash dryer.
+ * This was originally written to limit the time a 
+ * screen printing press arm was left under a 1600 
+ * watt flash dryer.
  */
 
 #include "Wire.h"
@@ -51,11 +57,12 @@ void tick() {
 
 void doEncoder() {
   /*
-   * If pinA and pinB are the same logic, turning is CW.  Else CCW.
+   * If pinA and pinB are the same logic, turning is CW. Else CCW.
    * Note this is only true because we're triggering on pin A rising.
    */
    
-  delay(5);
+  delay(5);  // A poor way to reduce influence of bouncing switch.
+  // TODO: Move the debounce to hardware. 
   pinA = digitalRead(ENCODER_PIN_A);
   pinB = digitalRead(ENCODER_PIN_B);
 
