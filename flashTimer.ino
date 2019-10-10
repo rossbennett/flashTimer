@@ -47,6 +47,7 @@ void setup() {
   Timer1.initialize();
   Timer1.attachInterrupt(tick);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), doEncoder, RISING);
+  // TODO: Store duration in flash memory and reinitialize from there.
   duration = DEFAULT_DURATION;
   timeRemaining = duration;
 }
@@ -61,8 +62,12 @@ void doEncoder() {
    * Note this is only true because we're triggering on pin A rising.
    */
    
-  delay(5);  // A poor way to reduce influence of bouncing switch.
-  // TODO: Move the debounce to hardware. 
+  delay(10);  // Maximum bounce time from encoder's spec sheet.
+
+  /* TODO: Implement the digital table reading decoder debounce
+   * technique outlined at this webpage:
+   * https://www.best-microcontroller-projects.com/rotary-encoder.html
+   */
   pinA = digitalRead(ENCODER_PIN_A);
   pinB = digitalRead(ENCODER_PIN_B);
 
