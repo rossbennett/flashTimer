@@ -79,8 +79,8 @@ void doEncoder() {
     duration--;
     timeRemaining--;
   }
-  constrain(duration, 0, 300);
-  constrain(timeRemaining, 0, 300);
+  duration = constrain(duration, 0, 300);
+  timeRemaining = constrain(timeRemaining, 0, 300);
 }
 
 void updateDisplayDuration() {
