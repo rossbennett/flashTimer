@@ -17,12 +17,14 @@
 #include "Adafruit_LiquidCrystal.h"
 #include "TimerOne.h"  // NOTE: this breaks analogWrite() on pins 9 & 10
 
-#define IR_PROXIMITY_SENSOR 2
 #define IR_DISTANCE_SENSOR A7
-#define ENCODER_PIN_A 3
-#define ENCODER_PIN_B 4
-#define BUZZER_PIN 9
-#define DEFAULT_DURATION 20
+#define THRESHOLD_PROXIMITY_SENSE 400
+#define ENCODER_PIN_A 3       // reading this from rotary encoder
+#define ENCODER_PIN_B 4       // reading this from rotary encoder
+#define BUZZER_PIN 9          // output pin to fixed-frequency piezo buzzer
+#define DEFAULT_DURATION 25   // seconds.
+#define MAXIMUM_DURATION 300  // seconds. Same duration as five minutes.
+#define MINIMUM_DURATION 0    // seconds.
 
 Adafruit_LiquidCrystal lcd(0);
 
@@ -47,8 +49,10 @@ void setup() {
   Timer1.initialize();
   Timer1.attachInterrupt(tick);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), doEncoder, RISING);
+  
   // TODO: Store duration in flash memory and reinitialize from there.
   // See Chapter 8 in "Programming Arduino" on how to do that.
+  
   duration = DEFAULT_DURATION;
   timeRemaining = duration;
 }
@@ -58,10 +62,6 @@ void tick() {
 }
 
 void doEncoder() {
-  /*
-   * If pinA and pinB are the same logic, turning is CW. Else CCW.
-   * Note this is only true because we're triggering on pin A rising.
-   */
    
   delay(10);  // Maximum bounce time from encoder's spec sheet.
 
@@ -69,18 +69,21 @@ void doEncoder() {
    * technique outlined at this webpage:
    * https://www.best-microcontroller-projects.com/rotary-encoder.html
    */
+   
   pinA = digitalRead(ENCODER_PIN_A);
   pinB = digitalRead(ENCODER_PIN_B);
 
+  /* If pinA and pinB are the same logic, turning is CW. Else CCW.
+   * Note this is only true because we're triggering on pin A rising.
+   */
+ 
   if (pinA == pinB) {
-    duration++;
-    timeRemaining++;
+    if (++duration > MAXIMUM_DURATION) duration = MAXIMUM_DURATION;
+    if (++timeRemaining > MAXIMUM_DURATION) timeRemaining = MAXIMUM_DURATION;
   } else {
-    duration--;
-    timeRemaining--;
+    if (--duration < MINIMUM_DURATION) duration = MINIMUM_DURATION;
+    if (--timeRemaining < MINIMUM_DURATION) timeRemaining = MINIMUM_DURATION;
   }
-  duration = constrain(duration, 0, 300);
-  timeRemaining = constrain(timeRemaining, 0, 300);
 }
 
 void updateDisplayDuration() {
@@ -105,22 +108,22 @@ void chirpAndBlink() {
 }
 
 void loop() {
-  proximity = (analogRead(IR_DISTANCE_SENSOR) > 400);
+  proximity = (analogRead(IR_DISTANCE_SENSOR) > THRESHOLD_PROXIMITY_SENSE);
   digitalWrite(LED_BUILTIN, proximity);
 
   if (!proximity) {
     timeRemaining = duration;
   }
 
-  if (duration != lastDuration) {
-    lastDuration = duration;
+  if (duration != lastDuration) {   // If the duration has changed since the last loop
+    lastDuration = duration;        // set the new duration mark and update the LCD display
     updateDisplayDuration();
   }
 
-  if (timeRemaining != lastTimeRemaining) {
-    lastTimeRemaining = timeRemaining;
-    updateDisplayRemaining();
+  if (timeRemaining != lastTimeRemaining) {  // if the time remaining has changed since the last loop
+    lastTimeRemaining = timeRemaining;       // set the new timeRemaining mark
+    updateDisplayRemaining();                // and update the display
   }
      
-  if (!timeRemaining) chirpAndBlink();
+  if (!timeRemaining) chirpAndBlink();       // if the time has run out, indicate so
 }
