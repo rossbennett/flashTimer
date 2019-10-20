@@ -13,9 +13,11 @@
  * watt flash dryer.
  */
 
+
 #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
 #include "TimerOne.h"         // NOTE: this breaks analogWrite() on pins 9 & 10
+#include <EEPROM.h>
 
 #define IR_DISTANCE_SENSOR A7
 #define THRESHOLD_PROXIMITY_SENSE 400
@@ -35,6 +37,7 @@ volatile bool pinA;
 volatile bool pinB;
 volatile int lastDuration;
 volatile int lastTimeRemaining;
+int flag;
 char lcdBuffer[16];
 
 void setup() {
@@ -50,10 +53,17 @@ void setup() {
   Timer1.attachInterrupt(tick);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), doEncoder, RISING);
   
-  // TODO: Store duration in flash memory and reinitialize from there.
-  // See Chapter 8 in "Programming Arduino" on how to do that.
-  
   duration = DEFAULT_DURATION;
+
+/*  if (EEPROM.get(256, flag) != 123) {
+    EEPROM.put(256, flag);
+    EEPROM.put(0, duration);
+  } else {
+ */
+    EEPROM.get(0, duration);
+ // }
+
+  duration = constrain(duration, MINIMUM_DURATION, MAXIMUM_DURATION);
   timeRemaining = duration;
 }
 
@@ -64,11 +74,6 @@ void tick() {
 void doEncoder() {
    
   delay(10);  // Maximum bounce time from encoder's spec sheet.
-
-  /* TODO: Implement the digital table reading decoder debounce
-   * technique outlined at this webpage:
-   * https://www.best-microcontroller-projects.com/rotary-encoder.html
-   */
    
   pinA = digitalRead(ENCODER_PIN_A);
   pinB = digitalRead(ENCODER_PIN_B);
@@ -118,6 +123,7 @@ void loop() {
   if (duration != lastDuration) {            // If the duration has changed since the last loop
     lastDuration = duration;                 // set the new duration mark and update the LCD display
     updateDisplayDuration();
+    EEPROM.put(0, duration);
   }
 
   if (timeRemaining != lastTimeRemaining) {  // if the time remaining has changed since the last loop
