@@ -15,7 +15,7 @@
 
 #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
-#include "TimerOne.h"  // NOTE: this breaks analogWrite() on pins 9 & 10
+#include "TimerOne.h"         // NOTE: this breaks analogWrite() on pins 9 & 10
 
 #define IR_DISTANCE_SENSOR A7
 #define THRESHOLD_PROXIMITY_SENSE 400
@@ -115,8 +115,8 @@ void loop() {
     timeRemaining = duration;
   }
 
-  if (duration != lastDuration) {   // If the duration has changed since the last loop
-    lastDuration = duration;        // set the new duration mark and update the LCD display
+  if (duration != lastDuration) {            // If the duration has changed since the last loop
+    lastDuration = duration;                 // set the new duration mark and update the LCD display
     updateDisplayDuration();
   }
 
