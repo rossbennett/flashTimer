@@ -39,7 +39,7 @@ volatile int lastTimeRemaining;
 char lcdBuffer[16];
 
 void setup() {
-  int eeprom_reading;
+  int eeprom_readwrite;
   int flag;
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(ENCODER_PIN_A, INPUT_PULLUP);
@@ -51,21 +51,22 @@ void setup() {
   
   Timer1.initialize();
   Timer1.attachInterrupt(tick);
+
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), doEncoder, RISING);
   
   duration = DEFAULT_DURATION;
-  eeprom_reading = duration;
+  eeprom_readwrite = duration;
   
   EEPROM.get(256, flag);
   if (flag != 123) {
     flag = 123;
     EEPROM.put(256, flag);
-    EEPROM.put(0, eeprom_reading);
+    EEPROM.put(0, eeprom_readwrite);
   } else {
-    EEPROM.get(0, eeprom_reading);
+    EEPROM.get(0, eeprom_readwrite);
   }
 
-  duration = constrain(eeprom_reading, MINIMUM_DURATION, MAXIMUM_DURATION);
+  duration = constrain(eeprom_readwrite, MINIMUM_DURATION, MAXIMUM_DURATION);
   timeRemaining = duration;
 }
 
