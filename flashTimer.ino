@@ -13,7 +13,6 @@
  * watt flash dryer.
  */
 
-
 #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
 #include "TimerOne.h"         // NOTE: this breaks analogWrite() on pins 9 & 10
@@ -37,10 +36,11 @@ volatile bool pinA;
 volatile bool pinB;
 volatile int lastDuration;
 volatile int lastTimeRemaining;
-int flag;
 char lcdBuffer[16];
 
 void setup() {
+  int eeprom_reading;
+  int flag;
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(ENCODER_PIN_A, INPUT_PULLUP);
   pinMode(ENCODER_PIN_B, INPUT_PULLUP);
@@ -54,16 +54,18 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), doEncoder, RISING);
   
   duration = DEFAULT_DURATION;
-
-/*  if (EEPROM.get(256, flag) != 123) {
+  eeprom_reading = duration;
+  
+  EEPROM.get(256, flag);
+  if (flag != 123) {
+    flag = 123;
     EEPROM.put(256, flag);
-    EEPROM.put(0, duration);
+    EEPROM.put(0, eeprom_reading);
   } else {
- */
-    EEPROM.get(0, duration);
- // }
+    EEPROM.get(0, eeprom_reading);
+  }
 
-  duration = constrain(duration, MINIMUM_DURATION, MAXIMUM_DURATION);
+  duration = constrain(eeprom_reading, MINIMUM_DURATION, MAXIMUM_DURATION);
   timeRemaining = duration;
 }
 
@@ -113,6 +115,8 @@ void chirpAndBlink() {
 }
 
 void loop() {
+  int eeprom_write;
+  
   proximity = (analogRead(IR_DISTANCE_SENSOR) > THRESHOLD_PROXIMITY_SENSE);
   digitalWrite(LED_BUILTIN, proximity);
 
@@ -121,9 +125,10 @@ void loop() {
   }
 
   if (duration != lastDuration) {            // If the duration has changed since the last loop
-    lastDuration = duration;                 // set the new duration mark and update the LCD display
-    updateDisplayDuration();
-    EEPROM.put(0, duration);
+    lastDuration = duration;                 // set the new duration mark, update the LCD display,
+    updateDisplayDuration();                 // and write the setting to non-volatile storage
+    eeprom_write = duration;                 // we use this intermediate local int because EEPROM::
+    EEPROM.put(0, eeprom_write);             // doesn't trust globally-scoped volatiles (like duration)
   }
 
   if (timeRemaining != lastTimeRemaining) {  // if the time remaining has changed since the last loop
