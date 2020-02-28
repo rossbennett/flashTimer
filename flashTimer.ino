@@ -26,6 +26,7 @@
 #define DEFAULT_DURATION 25   // seconds.
 #define MAXIMUM_DURATION 300  // seconds. Same duration as five minutes.
 #define MINIMUM_DURATION 0    // seconds.
+#define PRE_CHIRP_BLINKS 30
 
 Adafruit_LiquidCrystal lcd(0);
 
@@ -36,6 +37,7 @@ volatile bool pinA;
 volatile bool pinB;
 volatile int lastDuration;
 volatile int lastTimeRemaining;
+volatile int blinks;
 char lcdBuffer[16];
 
 void setup() {
@@ -106,11 +108,18 @@ void updateDisplayRemaining() {
   lcd.print(lcdBuffer);  
 }
 
-void chirpAndBlink() {
-  // digitalWrite(BUZZER_PIN, HIGH);  Smedley doesn't like this, so we're clobbering it
+void blink() {
   lcd.setBacklight(LOW);
   delay(200);
-  // digitalWrite(BUZZER_PIN, LOW);   Smedley doesn't like this, so we're clobbering 
+  lcd.setBacklight(HIGH);
+  delay(100);
+}
+
+void chirpAndBlink() {
+  digitalWrite(BUZZER_PIN, HIGH);
+  lcd.setBacklight(LOW);
+  delay(200);
+  digitalWrite(BUZZER_PIN, LOW);
   lcd.setBacklight(HIGH);
   delay(100);
 }
@@ -123,6 +132,7 @@ void loop() {
 
   if (!proximity) {
     timeRemaining = duration;
+    blinks = 0;
   }
 
   if (duration != lastDuration) {            // If the duration has changed since the last loop
@@ -137,5 +147,13 @@ void loop() {
     updateDisplayRemaining();                // and update the display
   }
      
-  if (!timeRemaining) chirpAndBlink();       // if the time has run out, indicate so
+  if (!timeRemaining) {
+     if (blinks < 30) {
+        blink();
+        blinks++;
+      }
+      else {
+        chirpAndBlink();
+      }
+    }
 }
